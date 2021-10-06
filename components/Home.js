@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
-export default class HomeScreen extends Component {
+export default class Home extends Component {
   constructor(props) {
     super(props);
     this.state = { username: '' };
@@ -20,7 +20,7 @@ export default class HomeScreen extends Component {
         <Button
           title="Go to Screen 2"
           onPress={() =>
-            this.props.navigation.navigate('ChatScreen', {
+            this.props.navigation.navigate('Chat', {
               username: this.state.username,
             })
           }
@@ -35,5 +35,6 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
     margin: 5,
+    width: 100,
   },
 });
