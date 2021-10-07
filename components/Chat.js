@@ -5,10 +5,12 @@ export default class ChatScreen extends Component {
   constructor(props) {
     super(props);
   }
-  render() {
-    let bgColor = this.props.route.params.bgColor;
+  componentDidMount() {
     let username = this.props.route.params.username;
     this.props.navigation.setOptions({ title: username });
+  }
+  render() {
+    let bgColor = this.props.route.params.bgColor;
 
     return (
       <View
