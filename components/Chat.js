@@ -4,6 +4,8 @@ import { database } from 'firebase';
 const firebase = require('firebase');
 require('firebase/firestore');
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   View,
   Text,
@@ -31,31 +33,45 @@ export default class Chat extends React.Component {
       });
     }
   }
+
+  async getMessages() {
+    let messages = '';
+    try {
+      messages = (await AsyncStorage.getItem('messages')) || [];
+      this.setState({
+        messages: JSON.parse(messages),
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   componentDidMount() {
+    this.getMessages();
     //  sets username to display on screen
     let username = this.props.route.params.username;
     this.props.navigation.setOptions({ title: username });
 
     // anonymous user login to firebase
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) {
-        await firebase.auth().signInAnonymously();
-      }
-      this.setState({
-        uid: user.uid,
-      });
-    });
+    // this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+    //   if (!user) {
+    //     await firebase.auth().signInAnonymously();
+    //   }
+    //   this.setState({
+    //     uid: user.uid,
+    //   });
+    //});
 
     //  creates listener to 'messages' collection
-    this.referenceMessaages = firebase.firestore().collection('messages');
-    this.unsubscribe = this.referenceMessaages.onSnapshot(
-      this.onCollectionUpdate
-    );
+    // this.referenceMessaages = firebase.firestore().collection('messages');
+    // this.unsubscribe = this.referenceMessaages.onSnapshot(
+    //   this.onCollectionUpdate
+    // );
   }
 
   componentWillUnmount() {
-    this.unsubscribe();
-    this.authUnsubscribe();
+    // this.unsubscribe();
+    // this.authUnsubscribe();
   }
 
   //  called when onSnapshot listener is triggered
@@ -103,9 +119,28 @@ export default class Chat extends React.Component {
     );
   }
 
+  async saveMessages() {
+    try {
+      await AsyncStorage.setItem(
+        'messages',
+        JSON.stringify(this.state.messages)
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   // pushes message to firestore, triggering onSnaphot listener
   addMessage(messages) {
-    this.referenceMessaages.add(messages[0]);
+    //this.referenceMessaages.add(messages[0]);
+    this.setState(
+      (previousState) => ({
+        messages: GiftedChat.append(previousState.messages, messages),
+      }),
+      () => {
+        this.saveMessages();
+      }
+    );
   }
 
   //  redundant code to be removed after further testing
