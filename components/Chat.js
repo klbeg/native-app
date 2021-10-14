@@ -18,7 +18,9 @@ export default class Chat extends React.Component {
     super(props);
     this.state = {
       messages: [],
+      uid: null,
     };
+    // initialization and config for firebase
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey: 'AIzaSyDLCfqvmWV2W3W92YTsTf02BlrIrDKGHu0',
@@ -30,41 +32,35 @@ export default class Chat extends React.Component {
     }
   }
   componentDidMount() {
+    //  sets username to display on screen
     let username = this.props.route.params.username;
     this.props.navigation.setOptions({ title: username });
 
+    // anonymous user login to firebase
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        await firebase.auth().signInAnonymously();
+      }
+      this.setState({
+        uid: user.uid,
+      });
+    });
+
+    //  creates listener to 'messages' collection
     this.referenceMessaages = firebase.firestore().collection('messages');
     this.unsubscribe = this.referenceMessaages.onSnapshot(
       this.onCollectionUpdate
     );
-
-    //  sets temporary message state for development
-    // this.setState({
-    //   messages: [
-    //     {
-    //       _id: 1,
-    //       text: 'Hello captain developer',
-    //       createdAt: new Date(),
-    //       user: {
-    //         _id: 2,
-    //         name: 'React Native',
-    //         avatar: 'https://placeimg.com/140/140/any',
-    //       },
-    //     },
-    //     {
-    //       _id: 2,
-    //       text: `${username} has entered the chat!`,
-    //       createdAt: new Date(),
-    //       system: true,
-    //     },
-    //   ],
-    // });
   }
 
   componentWillUnmount() {
     this.unsubscribe();
+    this.authUnsubscribe();
   }
 
+  //  called when onSnapshot listener is triggered
+  //  puts all messages into an array, sorts by date,
+  //    then sets 'message' state to output
   onCollectionUpdate = (querySnapshot) => {
     const messages = [];
     querySnapshot.forEach((doc) => {
@@ -76,6 +72,7 @@ export default class Chat extends React.Component {
         user: data.user,
       });
     });
+    messages.sort((a, b) => b.createdAt - a.createdAt);
     this.setState({
       messages,
     });
@@ -106,11 +103,15 @@ export default class Chat extends React.Component {
     );
   }
 
-  onSend(messages = []) {
-    this.setState((previousState) => ({
-      messages: GiftedChat.append(previousState.messages, messages),
-    }));
+  // pushes message to firestore, triggering onSnaphot listener
+  addMessage(messages) {
+    this.referenceMessaages.add(messages[0]);
   }
+
+  //  redundant code to be removed after further testing
+  // onSend(messages = []) {
+  //   this.addMessage(messages);
+  // }
 
   render() {
     let bgColor = this.props.route.params.bgColor;
@@ -120,9 +121,9 @@ export default class Chat extends React.Component {
           renderBubble={this.renderBubble.bind(this)}
           renderSystemMessage={this.renderSystemMessage.bind(this)}
           messages={this.state.messages}
-          onSend={(messages) => this.onSend(messages)}
+          onSend={(messages) => this.addMessage(messages)}
           user={{
-            _id: 1,
+            _id: this.state.uid,
           }}
         />
         {Platform.OS === 'android' ? (

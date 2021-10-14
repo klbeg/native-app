@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   StyleSheet,
   ImageBackground,
   Image,
@@ -15,7 +14,7 @@ export default class Home extends Component {
     super(props);
     this.state = {
       username: '',
-      bgColor: '',
+      bgColor: 'gray',
     };
   }
 
