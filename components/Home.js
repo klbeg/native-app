@@ -8,6 +8,7 @@ import {
   Image,
   Pressable,
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 
 export default class Home extends Component {
   constructor(props) {
