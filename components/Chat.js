@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { database } from 'firebase';
 
+import NetInfo from '@react-native-community/netinfo';
+
 const firebase = require('firebase');
 require('firebase/firestore');
 
@@ -13,7 +15,12 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { Bubble, GiftedChat, SystemMessage } from 'react-native-gifted-chat';
+import {
+  Bubble,
+  GiftedChat,
+  InputToolbar,
+  SystemMessage,
+} from 'react-native-gifted-chat';
 
 export default class Chat extends React.Component {
   constructor(props) {
@@ -21,6 +28,8 @@ export default class Chat extends React.Component {
     this.state = {
       messages: [],
       uid: null,
+      onlineStatus: false,
+      messagesToDelete: false,
     };
     // initialization and config for firebase
     if (!firebase.apps.length) {
@@ -47,31 +56,79 @@ export default class Chat extends React.Component {
   }
 
   componentDidMount() {
-    this.getMessages();
     //  sets username to display on screen
     let username = this.props.route.params.username;
     this.props.navigation.setOptions({ title: username });
 
-    // anonymous user login to firebase
-    // this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-    //   if (!user) {
-    //     await firebase.auth().signInAnonymously();
-    //   }
-    //   this.setState({
-    //     uid: user.uid,
-    //   });
-    //});
+    //  Checks user's internet connection.
+    //  state.onlineStatus set accordingly
+    NetInfo.fetch().then((connection) => {
+      if (connection.isConnected) {
+        console.log('online');
+        this.setState({
+          onlineStatus: true,
+        });
+      } else {
+        this.setState({
+          onlineStatus: false,
+        });
+        console.log('offline');
+      }
+    });
 
-    //  creates listener to 'messages' collection
-    // this.referenceMessaages = firebase.firestore().collection('messages');
-    // this.unsubscribe = this.referenceMessaages.onSnapshot(
-    //   this.onCollectionUpdate
-    // );
+    //  if onlineStatus == true
+    // anonymous user login to firebase
+    if (this.state.onlineStatus == true) {
+      this.authUnsubscribe = firebase
+        .auth()
+        .onAuthStateChanged(async (user) => {
+          if (!user) {
+            await firebase.auth().signInAnonymously();
+          }
+          this.setState({
+            uid: user.uid,
+          });
+          await AsyncStorage.setItem('uid', JSON.stringify(this.state.uid));
+        });
+
+      //  creates listener to 'messages' collection
+      this.referenceMessaages = firebase.firestore().collection('messages');
+      this.unsubscribe = this.referenceMessaages.onSnapshot(
+        this.onCollectionUpdate
+      );
+    } else if (this.state.onlineStatus == false) {
+      //  if onlineStatus == false
+      //  get messages from asyncStorage
+
+      this.setUidOffline();
+
+      this.getMessages();
+    }
   }
 
   componentWillUnmount() {
-    // this.unsubscribe();
-    // this.authUnsubscribe();
+    this.saveMessages();
+
+    //  used for deleting asyncStorage
+    // if ((this.state.messagesToDelete = true)) {
+    //   this.deleteMessages();
+    // }
+    if (this.state.onlineStatus == true) {
+      this.unsubscribe();
+      this.authUnsubscribe();
+    }
+  }
+
+  async setUidOffline() {
+    let uid;
+    try {
+      uid = await AsyncStorage.getItem('uid');
+      this.setState({
+        uid: JSON.parse(uid),
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   //  called when onSnapshot listener is triggered
@@ -119,6 +176,14 @@ export default class Chat extends React.Component {
     );
   }
 
+  //  only renders input toolbar if user is online
+  renderInputToolbar(props) {
+    if (this.state.onlineStatus == false) {
+    } else {
+      return <InputToolbar {...props} />;
+    }
+  }
+
   async saveMessages() {
     try {
       await AsyncStorage.setItem(
@@ -132,7 +197,9 @@ export default class Chat extends React.Component {
 
   // pushes message to firestore, triggering onSnaphot listener
   addMessage(messages) {
-    //this.referenceMessaages.add(messages[0]);
+    if (this.state.onlineStatus == true) {
+      this.referenceMessaages.add(messages[0]);
+    }
     this.setState(
       (previousState) => ({
         messages: GiftedChat.append(previousState.messages, messages),
@@ -143,9 +210,16 @@ export default class Chat extends React.Component {
     );
   }
 
-  //  redundant code to be removed after further testing
-  // onSend(messages = []) {
-  //   this.addMessage(messages);
+  //  used to delete asyndStorage
+  // async deleteMessages() {
+  //   try {
+  //     await AsyncStorage.removeItem('messages');
+  //     this.setState({
+  //       mesages: [],
+  //     });
+  //   } catch (error) {
+  //     console.log(error.message);
+  //   }
   // }
 
   render() {
@@ -155,6 +229,7 @@ export default class Chat extends React.Component {
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           renderSystemMessage={this.renderSystemMessage.bind(this)}
+          renderInputToolbar={this.renderInputToolbar.bind(this)}
           messages={this.state.messages}
           onSend={(messages) => this.addMessage(messages)}
           user={{
