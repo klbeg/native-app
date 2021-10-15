@@ -29,7 +29,8 @@ export default class Chat extends React.Component {
       messages: [],
       uid: null,
       onlineStatus: false,
-      messagesToDelete: false,
+      //  only used if asyndStorage needs to be deleted
+      //messagesToDelete: false,
     };
     // initialization and config for firebase
     if (!firebase.apps.length) {
@@ -43,6 +44,7 @@ export default class Chat extends React.Component {
     }
   }
 
+  //  gets messages from asyncStorage if user is offline
   async getMessages() {
     let messages = '';
     try {
@@ -98,27 +100,29 @@ export default class Chat extends React.Component {
       );
     } else if (this.state.onlineStatus == false) {
       //  if onlineStatus == false
-      //  get messages from asyncStorage
+      //  get's messages and uid from asyncStorage
 
       this.setUidOffline();
-
       this.getMessages();
     }
   }
 
   componentWillUnmount() {
+    //  keeps asyncStorage up to date
     this.saveMessages();
+
+    if (this.state.onlineStatus == true) {
+      this.unsubscribe();
+      this.authUnsubscribe();
+    }
 
     //  used for deleting asyncStorage
     // if ((this.state.messagesToDelete = true)) {
     //   this.deleteMessages();
     // }
-    if (this.state.onlineStatus == true) {
-      this.unsubscribe();
-      this.authUnsubscribe();
-    }
   }
 
+  //  if offline, grabs uid from asyncStorage
   async setUidOffline() {
     let uid;
     try {
@@ -184,6 +188,7 @@ export default class Chat extends React.Component {
     }
   }
 
+  //  saves messages to asyncStorage for offline use
   async saveMessages() {
     try {
       await AsyncStorage.setItem(
