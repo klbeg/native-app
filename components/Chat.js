@@ -70,41 +70,76 @@ export default class Chat extends React.Component {
         this.setState({
           onlineStatus: true,
         });
+        console.log('netInfo state.onlineStatus: ', this.state.onlineStatus);
+        this.onlineTrue();
       } else {
         this.setState({
           onlineStatus: false,
         });
         console.log('offline');
+        this.onlineFalse();
       }
     });
 
     //  if onlineStatus == true
     // anonymous user login to firebase
-    if (this.state.onlineStatus == true) {
-      this.authUnsubscribe = firebase
-        .auth()
-        .onAuthStateChanged(async (user) => {
-          if (!user) {
-            await firebase.auth().signInAnonymously();
-          }
-          this.setState({
-            uid: user.uid,
-          });
-          await AsyncStorage.setItem('uid', JSON.stringify(this.state.uid));
-        });
+    // if (this.state.onlineStatus == true) {
+    //   console.log('getting to this point');
+    //   this.authUnsubscribe = firebase
+    //     .auth()
+    //     .onAuthStateChanged(async (user) => {
+    //       if (!user) {
+    //         await firebase.auth().signInAnonymously();
+    //       }
+    //       this.setState({
+    //         uid: user.uid,
+    //       });
+    //       await AsyncStorage.setItem('uid', JSON.stringify(this.state.uid));
+    //     });
 
-      //  creates listener to 'messages' collection
-      this.referenceMessaages = firebase.firestore().collection('messages');
-      this.unsubscribe = this.referenceMessaages.onSnapshot(
-        this.onCollectionUpdate
-      );
-    } else if (this.state.onlineStatus == false) {
-      //  if onlineStatus == false
-      //  get's messages and uid from asyncStorage
+    //  creates listener to 'messages' collection
+    //   this.referenceMessaages = firebase.firestore().collection('messages');
+    //   this.unsubscribe = this.referenceMessaages.onSnapshot(
+    //     this.onCollectionUpdate
+    //   );
+    // } else if (this.state.onlineStatus == false) {
+    //   //  if onlineStatus == false
+    //   //  get's messages and uid from asyncStorage
+    //   console.log(
+    //     'state.onlineStatus in "offline" block',
+    //     this.state.onlineStatus
+    //   );
+    //   this.setUidOffline();
+    //   this.getMessages();
+    // }
+  }
 
-      this.setUidOffline();
-      this.getMessages();
-    }
+  async onlineTrue() {
+    console.log('getting to this point');
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        await firebase.auth().signInAnonymously();
+      }
+      this.setState({
+        uid: user.uid,
+      });
+      await AsyncStorage.setItem('uid', JSON.stringify(this.state.uid));
+    });
+
+    //  creates listener to 'messages' collection
+    this.referenceMessaages = firebase.firestore().collection('messages');
+    this.unsubscribe = this.referenceMessaages.onSnapshot(
+      this.onCollectionUpdate
+    );
+  }
+
+  async onlineFalse() {
+    console.log(
+      'state.onlineStatus in "offline" block',
+      this.state.onlineStatus
+    );
+    this.setUidOffline();
+    this.getMessages();
   }
 
   componentWillUnmount() {
