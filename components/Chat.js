@@ -22,6 +22,8 @@ import {
   SystemMessage,
 } from 'react-native-gifted-chat';
 
+import { CustomActions } from './CustomActions';
+
 export default class Chat extends React.Component {
   constructor(props) {
     super(props);
@@ -186,11 +188,20 @@ export default class Chat extends React.Component {
   }
 
   //  only renders input toolbar if user is online
-  renderInputToolbar(props) {
+  renderInputToolbar() {
     if (this.state.onlineStatus == false) {
     } else {
-      return <InputToolbar {...props} />;
+      return <InputToolbar />;
+      //  code that's suggested
+      //  return <InputToolbar {...props} />;
     }
+  }
+
+  //  adds access to: share location, take picture, share img from library
+  //  inside of chat text input
+  renderCustomActions(props) {
+    console.log('renderCustomActions called');
+    return <CustomActions {...props} />;
   }
 
   //  saves messages to asyncStorage for offline use
@@ -240,6 +251,7 @@ export default class Chat extends React.Component {
           renderBubble={this.renderBubble.bind(this)}
           renderSystemMessage={this.renderSystemMessage.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
+          renderActions={this.renderCustomActions}
           messages={this.state.messages}
           onSend={(messages) => this.addMessage(messages)}
           user={{
@@ -259,35 +271,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-//  if onlineStatus == true
-// anonymous user login to firebase
-// if (this.state.onlineStatus == true) {
-//   console.log('getting to this point');
-//   this.authUnsubscribe = firebase
-//     .auth()
-//     .onAuthStateChanged(async (user) => {
-//       if (!user) {
-//         await firebase.auth().signInAnonymously();
-//       }
-//       this.setState({
-//         uid: user.uid,
-//       });
-//       await AsyncStorage.setItem('uid', JSON.stringify(this.state.uid));
-//     });
-
-//  creates listener to 'messages' collection
-//   this.referenceMessaages = firebase.firestore().collection('messages');
-//   this.unsubscribe = this.referenceMessaages.onSnapshot(
-//     this.onCollectionUpdate
-//   );
-// } else if (this.state.onlineStatus == false) {
-//   //  if onlineStatus == false
-//   //  get's messages and uid from asyncStorage
-//   console.log(
-//     'state.onlineStatus in "offline" block',
-//     this.state.onlineStatus
-//   );
-//   this.setUidOffline();
-//   this.getMessages();
-// }
