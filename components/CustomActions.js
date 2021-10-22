@@ -3,7 +3,7 @@ import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 
 //import App from '../App.js';
 
-export default class CustomActions extends React.Component {
+export class CustomActions extends React.Component {
   constructor(props) {
     super(props);
     state = {};
@@ -29,7 +29,7 @@ export default class CustomActions extends React.Component {
     return (
       <TouchableOpacity style={[styles.container]} onPress={this.onActionPress}>
         <View style={[styles.wrapper, this.props.wrapperStyle]}>
-          <Text style={[styles.iconText, this.props.iconTextStyle]}>+</Text>
+          <Text style={[styles.iconText, this.props.iconTextStyle]}>X</Text>
         </View>
       </TouchableOpacity>
     );
@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     height: 26,
     marginLeft: 10,
     marginBottom: 10,
+    backgroundColor: 'blue',
   },
   wrapper: {
     borderRadius: 13,

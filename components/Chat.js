@@ -20,6 +20,7 @@ import {
   GiftedChat,
   InputToolbar,
   SystemMessage,
+  Actions,
 } from 'react-native-gifted-chat';
 
 import { CustomActions } from './CustomActions';
@@ -44,6 +45,8 @@ export default class Chat extends React.Component {
         messagingSenderId: '628008627184',
       });
     }
+    this.renderActions = this.renderActions.bind(this);
+    this.renderInputToolbar = this.renderInputToolbar.bind(this);
   }
 
   //  gets messages from asyncStorage if user is offline
@@ -68,17 +71,14 @@ export default class Chat extends React.Component {
     //  state.onlineStatus set accordingly
     NetInfo.fetch().then((connection) => {
       if (connection.isConnected) {
-        console.log('online');
         this.setState({
           onlineStatus: true,
         });
-        console.log('netInfo state.onlineStatus: ', this.state.onlineStatus);
         this.onlineTrue();
       } else {
         this.setState({
           onlineStatus: false,
         });
-        console.log('offline');
         this.onlineFalse();
       }
     });
@@ -87,7 +87,6 @@ export default class Chat extends React.Component {
   }
 
   async onlineTrue() {
-    console.log('getting to this point');
     this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
       if (!user) {
         await firebase.auth().signInAnonymously();
@@ -106,10 +105,6 @@ export default class Chat extends React.Component {
   }
 
   async onlineFalse() {
-    console.log(
-      'state.onlineStatus in "offline" block',
-      this.state.onlineStatus
-    );
     this.setUidOffline();
     this.getMessages();
   }
@@ -191,16 +186,13 @@ export default class Chat extends React.Component {
   renderInputToolbar() {
     if (this.state.onlineStatus == false) {
     } else {
-      return <InputToolbar />;
-      //  code that's suggested
-      //  return <InputToolbar {...props} />;
+      return <InputToolbar renderActions={this.renderActions} />;
     }
   }
 
   //  adds access to: share location, take picture, share img from library
   //  inside of chat text input
-  renderCustomActions(props) {
-    console.log('renderCustomActions called');
+  renderActions(props) {
     return <CustomActions {...props} />;
   }
 
@@ -251,7 +243,7 @@ export default class Chat extends React.Component {
           renderBubble={this.renderBubble.bind(this)}
           renderSystemMessage={this.renderSystemMessage.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
-          renderActions={this.renderCustomActions}
+          //renderActions={this.renderActions.bind(this)}
           messages={this.state.messages}
           onSend={(messages) => this.addMessage(messages)}
           user={{
