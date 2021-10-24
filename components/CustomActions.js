@@ -31,20 +31,7 @@ export class CustomActions extends React.Component {
         switch (buttonIndex) {
           case 0:
             console.log('user wants to pick an image');
-            // return this.pickImage();
-            return {
-              _id: 1,
-              createdAt: new Date(),
-              user: {
-                _id: 2,
-                name: 'React Native',
-                avatar: 'https://placeimg.com/140/140/any',
-              },
-              location: {
-                latitude: 48.864601,
-                longitude: 2.398704,
-              },
-            };
+            return this.pickImage();
 
           case 1:
             console.log('user wants to take a photo');
