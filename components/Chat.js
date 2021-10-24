@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { database } from 'firebase';
 
 import NetInfo from '@react-native-community/netinfo';
-
+import MapView from 'react-native-maps';
 const firebase = require('firebase');
 require('firebase/firestore');
 
@@ -186,6 +186,7 @@ export default class Chat extends React.Component {
   renderInputToolbar() {
     if (this.state.onlineStatus == false) {
     } else {
+      console.log('renderInputtoolbar props: ', this.props);
       return <InputToolbar renderActions={this.renderActions} />;
     }
   }
@@ -193,6 +194,7 @@ export default class Chat extends React.Component {
   //  adds access to: share location, take picture, share img from library
   //  inside of chat text input
   renderActions(props) {
+    console.log('props in addmessage: ', this.props);
     return <CustomActions {...props} />;
   }
 
@@ -258,12 +260,13 @@ export default class Chat extends React.Component {
     return (
       <View style={[styles.bodyContent]}>
         <GiftedChat
+          renderCustomView={this.renderCustomView}
           renderBubble={this.renderBubble.bind(this)}
           renderSystemMessage={this.renderSystemMessage.bind(this)}
-          renderInputToolbar={this.renderInputToolbar.bind(this)}
           //renderActions={this.renderActions.bind(this)}
+          renderInputToolbar={this.renderInputToolbar.bind(this)}
           messages={this.state.messages}
-          onSend={(messages) => this.addMessage(messages)}
+          onSend={(messages) => this.addMessage(messages).bind(this)}
           user={{
             _id: this.state.uid,
           }}
