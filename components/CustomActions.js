@@ -1,35 +1,71 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
+import PropTypes from 'prop-types';
 
 //import App from '../App.js';
 
 export class CustomActions extends React.Component {
   constructor(props) {
     super(props);
-    state = {};
+    //state = {};
   }
 
   componentDidMount() {
     console.log('Custom Actions mounted');
   }
 
-  onActionPress() {
+  onActionPress = () => {
     const options = [
       'Choose From Library',
-      'Take Picture',
+      'Take a Picture',
       'Send Location',
       'Cancel',
     ];
-
     const cancelButtonIndex = options.length - 1;
-    this.context.actionSheet().showActionSheetWithOptions();
-  }
+    this.context.actionSheet().showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+      },
+      async (buttonIndex) => {
+        switch (buttonIndex) {
+          case 0:
+            console.log('user wants to pick an image');
+            // return this.pickImage();
+            return {
+              _id: 1,
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'React Native',
+                avatar: 'https://placeimg.com/140/140/any',
+              },
+              location: {
+                latitude: 48.864601,
+                longitude: 2.398704,
+              },
+            };
+
+          case 1:
+            console.log('user wants to take a photo');
+            return this.takePhoto();
+          case 2:
+            console.log('user wants to get their location');
+            return this.getLocation();
+          default:
+        }
+      }
+    );
+  };
 
   render() {
     return (
-      <TouchableOpacity style={[styles.container]} onPress={this.onActionPress}>
+      <TouchableOpacity
+        style={[styles.container]}
+        onPress={this.onActionPress.bind(this)}
+      >
         <View style={[styles.wrapper, this.props.wrapperStyle]}>
-          <Text style={[styles.iconText, this.props.iconTextStyle]}>X</Text>
+          <Text style={[styles.iconText, this.props.iconTextStyle]}>+</Text>
         </View>
       </TouchableOpacity>
     );
@@ -42,7 +78,6 @@ const styles = StyleSheet.create({
     height: 26,
     marginLeft: 10,
     marginBottom: 10,
-    backgroundColor: 'blue',
   },
   wrapper: {
     borderRadius: 13,
@@ -58,3 +93,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+CustomActions.contextTypes = {
+  actionSheet: PropTypes.func,
+};
