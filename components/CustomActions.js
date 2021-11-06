@@ -27,15 +27,14 @@ export class CustomActions extends React.Component {
     if (status === 'granted') {
       this.setState({ permissions: true });
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'Images',
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
       }).catch((error) => console.log(error));
       if (!result.cancelled) {
         const imageUrl = await this.uploadImageFetch(result.uri);
-        console.log(imageUrl);
-        this.props.onSend({ image: imageUrl });
         this.setState({
           image: imageUrl,
         });
+        this.props.onSend({ image: imageUrl });
       }
     }
   }

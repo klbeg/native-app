@@ -57,6 +57,7 @@ export default class Chat extends React.Component {
       this.setState({
         messages: JSON.parse(messages),
       });
+      console.log(messages);
     } catch (error) {
       console.log(error.message);
     }
@@ -183,23 +184,25 @@ export default class Chat extends React.Component {
   }
 
   //  only renders input toolbar if user is online
-  renderInputToolbar() {
+  renderInputToolbar(props) {
     if (this.state.onlineStatus == false) {
     } else {
-      console.log('renderInputtoolbar props: ', this.props);
-      return <InputToolbar renderActions={this.renderActions} />;
+      console.log(this.props);
+      return <InputToolbar {...props} />;
+      // return <InputToolbar renderActions={this.renderActions} />;
     }
   }
 
   //  adds access to: share location, take picture, share img from library
   //  inside of chat text input
   renderActions(props) {
-    console.log('props in addmessage: ', this.props);
+    console.log(props.message);
     return <CustomActions {...props} />;
   }
 
   renderCustomView(props) {
     const { currentMessage } = props;
+    console.log(currentMessage);
     if (currentMessage.location) {
       return (
         <MapView
@@ -260,13 +263,13 @@ export default class Chat extends React.Component {
     return (
       <View style={[styles.bodyContent]}>
         <GiftedChat
-          renderCustomView={this.renderCustomView}
+          renderActions={this.renderActions}
           renderBubble={this.renderBubble.bind(this)}
           renderSystemMessage={this.renderSystemMessage.bind(this)}
-          //renderActions={this.renderActions.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
+          renderCustomView={this.renderCustomView}
           messages={this.state.messages}
-          onSend={(messages) => this.addMessage(messages).bind(this)}
+          onSend={(messages) => this.addMessage(messages)}
           user={{
             _id: this.state.uid,
           }}
